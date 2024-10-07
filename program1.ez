@@ -1,0 +1,52 @@
+# Assignments
+let w = 6
+let y = 2
+let z = 3
+
+# Arithmetic Literal Expressions
+let f = 3 + 3
+let g = 3 - 3
+let h = 3 * 3
+let k = 3 / 3
+let l = 3 % 3
+let m = f + h
+let n = f + 4
+
+print(f)
+print(g)
+print(h)
+print(k)
+print(l)
+print(m)
+print(n)
+
+if f + h == 15 {
+    print("f + h is equal to 15")
+}
+
+if f % z == 0 {
+    print("6 mod 3 is 0")
+}
+
+if f - z == 3 {
+    print("6 - 3 is 3")
+}
+
+if h > f {
+    print("Greater Than Hello World!")
+}
+if g < f {
+    print("Less Than Hello World!")
+}
+
+let x = 4
+
+let i = 0
+while i < 10 {
+    print(i)
+    i++
+}
+
+
+
+print("f")
