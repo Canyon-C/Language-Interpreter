@@ -1,4 +1,5 @@
 import io
+import operator
 
 
 def addition(value1, value2):
@@ -37,6 +38,30 @@ def increment(value1):
     return int(value1) + 1
 
 
+def mathematicalExpressions(expressions):
+
+    operators = {
+        "+": operator.add,
+        "-": operator.sub,
+        "*": operator.mul,
+        "/": operator.truediv,
+        "%": operator.mod,
+    }
+    result = None
+    op = None
+    for x in range(0, len(expressions)):
+        try:
+            currentValue = int(expressions[x])
+            if result == None:
+                result = currentValue
+            elif op != None:
+                result = operators[op](result, currentValue)
+                op = None
+        except ValueError:
+            op = expressions[x]
+    return result
+
+
 def inVarMap(s, value1, value2=None):
     value1Exists = False
     value2Exists = False
@@ -44,10 +69,12 @@ def inVarMap(s, value1, value2=None):
         value1Exists = True
     if value2 in s.keys():
         value2Exists = True
+
     return value1Exists, value2Exists
 
 
 def interpret(s: dict, lines):
+
     i = 0
     while i < len(lines):
         line = lines[i].strip()
@@ -65,23 +92,27 @@ def interpret(s: dict, lines):
                 incrementer = expression.split("in ")[1].strip()
                 start = incrementer.split(",")[0].strip()[6:]
                 finish = incrementer.split(", ")[1].strip()[:-1]
-                i += 1
-                forBody = []
-                while "}" not in lines[i]:
-                    forBody.append(lines[i])
-                    i += 1
-                varInMap = inVarMap(s, variable)
-                if varInMap:
 
+                forBody = []
+                braceCount = 1
+                while i < len(lines) and braceCount > 0:
+                    i += 1
+                    line = lines[i]
+                    if "{" in line:
+                        braceCount += line.count("{")
+                    if "}" in line:
+                        braceCount -= line.count("}")
+                    if braceCount > 0:
+                        forBody.append(line)
+                varInMap, temp = inVarMap(s, variable)
+                if varInMap:
                     for s[variable] in range(int(start), int(finish)):
                         interpret(s, forBody)
-
                 else:
                     s[variable] = 0
                     for s[variable] in range(int(start), int(finish)):
                         interpret(s, forBody)
                     s.pop(variable)
-
                 i += 1
         elif line.startswith("while "):
             if "<" in line:
@@ -94,12 +125,18 @@ def interpret(s: dict, lines):
                     s[value1] if value1Exist else value1,
                     s[value2] if value2Exist else value2,
                 )
-
-                i += 1
                 whileBody = []
-                while "}" not in lines[i]:
-                    whileBody.append(lines[i].strip())
+                braceCount = 1
+                while i < len(lines) and braceCount > 0:
                     i += 1
+                    line = lines[i]
+                    if "{" in line:
+                        braceCount += line.count("{")
+                    if "}" in line:
+                        braceCount -= line.count("}")
+                    if braceCount > 0:
+                        whileBody.append(line)
+
                 if result:
                     while lessThan(
                         s[value1] if value1Exist else value1,
@@ -109,11 +146,45 @@ def interpret(s: dict, lines):
 
                 i += 1
         elif line.startswith("if "):
-            if "==" in line:
+            if "&&" in line:
+                expression1 = line.split("if ")[1].strip()[:-2]
+                equivalenceRelation = expression1.split("==")[1].strip().split(" ")[0]
+                expression1 = expression1.split("==")[0].strip()
+                if mathematicalExpressions(expression1.split(" ")) == int(
+                    equivalenceRelation
+                ):
+                    result = True
+                else:
+                    result = False
+                expression2 = line.split("&& ")[1].strip()[:-2]
+                equivalenceRelation2 = expression2.split("!=")[1].strip().split(" ")[0]
+                expression2 = expression1.split("!=")[0].strip()
+                if mathematicalExpressions(expression2.split(" ")) == int(
+                    equivalenceRelation2
+                ):
+                    result2 = True
+                else:
+                    result2 = False
+                body = []
+                braceCount = 1
+                while i < len(lines) and braceCount > 0:
+                    i += 1
+                    line = lines[i]
+                    if "{" in line:
+                        braceCount += line.count("{")
+                    if "}" in line:
+                        braceCount -= line.count("}")
+                    if braceCount > 0:
+                        body.append(line)
+
+                    if result and result2:
+                        interpret(s, body)
+
+            elif "==" in line:
                 if "+" in line:
                     expression = line.split("if ")[1].strip()[:-2]
                     value1 = expression.split("+")[0].strip()
-                    value2 = expression.split("+")[1].strip()[:1]
+                    value2 = expression.split("+")[1].strip().split(" ")[0]
                     equivalenceRelation = expression.split("==")[1].strip()
                     result = None
                     value1Exist, value2Exist = inVarMap(s, value1, value2)
@@ -133,7 +204,7 @@ def interpret(s: dict, lines):
                 elif "%" in line:
                     expression = line.split("if ")[1].strip()[:-2]
                     value1 = expression.split("%")[0].strip()
-                    value2 = expression.split("%")[1].strip()[:1]
+                    value2 = expression.split("%")[1].strip().split(" ")[0]
                     equivalenceRelation = expression.split("==")[1].strip()
                     result = None
                     value1Exist, value2Exist = inVarMap(s, value1, value2)
@@ -142,18 +213,26 @@ def interpret(s: dict, lines):
                         s[value2] if value2Exist else value2,
                     )
                     expressionResult = equalTo(binResult, equivalenceRelation)
-                    i += 1
+
                     body = []
-                    while "}" not in lines[i]:
-                        body.append(lines[i].strip())
+                    braceCount = 1
+                    while i < len(lines) and braceCount > 0:
                         i += 1
+                        line = lines[i]
+                        if "{" in line:
+                            braceCount += line.count("{")
+                        if "}" in line:
+                            braceCount -= line.count("}")
+                        if braceCount > 0:
+                            body.append(line)
+
                     if expressionResult:
                         interpret(s, body)
                     i += 1
                 elif "-" in line:
                     expression = line.split("if ")[1].strip()[:-2]
                     value1 = expression.split("-")[0].strip()
-                    value2 = expression.split("-")[1].strip()[:1]
+                    value2 = expression.split("-")[1].strip().split(" ")[0]
                     equivalenceRelation = expression.split("==")[1].strip()
                     result = None
                     value1Exist, value2Exist = inVarMap(s, value1, value2)
@@ -199,90 +278,34 @@ def interpret(s: dict, lines):
                     s[value1] if value1Exist else value1,
                     s[value2] if value2Exist else value2,
                 )
-
                 i += 1
                 body = []
                 while "}" not in lines[i]:
                     body.append(lines[i].strip())
                     i += 1
+
                 if result:
                     interpret(s, body)
                 i += 1
-
         elif line.startswith("let "):
-            if "+" in line:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                value1 = val.split("+")[0].strip()
-                value2 = val.split("+")[1].strip()
-                value1Exist, value2Exist = inVarMap(s, value1, value2)
-                s[var] = addition(
-                    s[value1] if value1Exist else value1,
-                    s[value2] if value2Exist else value2,
-                )
-                i += 1
-            elif "-" in line:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                value1 = val.split("-")[0].strip()
-                value2 = val.split("-")[1].strip()
-
-                value1Exist, value2Exist = inVarMap(s, value1, value2)
-                s[var] = subtraction(
-                    s[value1] if value1Exist else value1,
-                    s[value2] if value2Exist else value2,
-                )
-                i += 1
-            elif "*" in line:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                value1 = val.split("*")[0].strip()
-                value2 = val.split("*")[1].strip()
-                value1Exist, value2Exist = inVarMap(s, value1, value2)
-                s[var] = multiplecation(
-                    s[value1] if value1Exist else value1,
-                    s[value2] if value2Exist else value2,
-                )
-                i += 1
-            elif "/" in line:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                value1 = val.split("/")[0].strip()
-                value2 = val.split("/")[1].strip()
-
-                value1Exist, value2Exist = inVarMap(s, value1, value2)
-                s[var] = division(
-                    s[value1] if value1Exist else value1,
-                    s[value2] if value2Exist else value2,
-                )
-                i += 1
-            elif "%" in line:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                value1 = val.split("%")[0].strip()
-                value2 = val.split("%")[1].strip()
-
-                value1Exist, value2Exist = inVarMap(s, value1, value2)
-                s[var] = modulo(
-                    s[value1] if value1Exist else value1,
-                    s[value2] if value2Exist else value2,
-                )
-                i += 1
-            else:
-                definition = line.split("let ")[1]
-                var, val = definition.split("=")
-                var = var.strip()
-                val = val.strip()
-                if val not in s.keys():
-                    s[var] = val
-                else:
+            definition = line.split("let ")[1]
+            var, val = definition.split("=")
+            var = var.strip()
+            val = val.strip()
+            if len(val) == 1:
+                valExist, value2Exist = inVarMap(s, val)
+                if valExist:
                     s[var] = s[val]
-                i += 1
+                else:
+                    s[var] = int(val)
+            else:
+                expression = []
+                for x in range(0, len(val)):
+                    if val[x] != " ":
+                        expression.append(val[x])
+                s[var] = mathematicalExpressions(expression)
+
+            i += 1
         elif line.startswith("print("):
             print_text = (
                 line.split("print")[1].replace("(", "").replace(")", "").strip()
@@ -311,4 +334,4 @@ def main(filename):
         interpret(state, lines)
 
 
-main("program1.ez")
+main("testprogram.ez")

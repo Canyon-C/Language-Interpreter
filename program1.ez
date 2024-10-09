@@ -4,7 +4,7 @@ let y = 2
 let z = 3
 
 # Arithmetic Literal Expressions
-let f = 3 + 3
+let f = 3 * 8 / 4
 let g = 3 - 3
 let h = 3 * 3
 let k = 3 / 3
@@ -39,14 +39,21 @@ if g < f {
     print("Less Than Hello World!")
 }
 
-let x = 4
+
 
 let i = 0
-while i < 10 {
-    print(i)
+while i < 2 {
+    if i % 3 == 0 {
+        print("I mod 3 is zero")
+    }
     i++
 }
 
+for x in range(1, 16) {
+    if x % 15 == 0 {
+        print("FizzBuzz")
+    }
 
+    print(x)
+}
 
-print("f")
