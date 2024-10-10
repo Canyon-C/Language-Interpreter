@@ -39,18 +39,20 @@ def increment(value1):
 
 
 def mathematicalExpressions(expressions):
-
     operators = {
         "+": operator.add,
         "-": operator.sub,
         "*": operator.mul,
         "/": operator.truediv,
         "%": operator.mod,
+        "==": operator.eq,
+        "!=": operator.ne,
     }
     result = None
     op = None
     for x in range(0, len(expressions)):
         try:
+
             currentValue = int(expressions[x])
             if result == None:
                 result = currentValue
@@ -60,7 +62,6 @@ def mathematicalExpressions(expressions):
         except ValueError:
             op = expressions[x]
     return result
-
 
 def inVarMap(s, value1, value2=None):
     value1Exists = False
@@ -112,7 +113,8 @@ def interpret(s: dict, lines):
                     s[variable] = 0
                     for s[variable] in range(int(start), int(finish)):
                         interpret(s, forBody)
-                    s.pop(variable)
+                    
+                    # s.pop(variable)
                 i += 1
         elif line.startswith("while "):
             if "<" in line:
@@ -148,24 +150,27 @@ def interpret(s: dict, lines):
         elif line.startswith("if "):
             if "&&" in line:
                 expression1 = line.split("if ")[1].strip()[:-2]
-                equivalenceRelation = expression1.split("==")[1].strip().split(" ")[0]
-                expression1 = expression1.split("==")[0].strip()
-                if mathematicalExpressions(expression1.split(" ")) == int(
-                    equivalenceRelation
-                ):
-                    result = True
-                else:
-                    result = False
-                expression2 = line.split("&& ")[1].strip()[:-2]
-                equivalenceRelation2 = expression2.split("!=")[1].strip().split(" ")[0]
-                expression2 = expression1.split("!=")[0].strip()
-                if mathematicalExpressions(expression2.split(" ")) == int(
-                    equivalenceRelation2
-                ):
-                    result2 = True
-                else:
-                    result2 = False
-                body = []
+                expression2 = expression1.split("&&")[1].strip()
+                expression1 = expression1.split("&&")[0].strip()
+                expression1Arr = expression1.split(" ")
+                expression2Arr = expression2.split(" ")
+                for x in range(0, len(expression1Arr)):
+                    try:
+                        inMap = inVarMap(s, expression1Arr[x], None)
+                        if inMap:
+                            expression1Arr[x] = s[expression1Arr[x]]
+                    except:
+                        pass
+                for x in range(0, len(expression2Arr)):
+                    try:
+                        inMap = inVarMap(s, expression2Arr[x], None)
+                        if inMap:
+                            expression2Arr[x] = s[expression2Arr[x]]
+                    except:
+                        pass
+                result1 = (mathematicalExpressions(expression1Arr))
+                result2 = (mathematicalExpressions(expression2Arr))
+                ifbody = []
                 braceCount = 1
                 while i < len(lines) and braceCount > 0:
                     i += 1
@@ -175,11 +180,10 @@ def interpret(s: dict, lines):
                     if "}" in line:
                         braceCount -= line.count("}")
                     if braceCount > 0:
-                        body.append(line)
-
-                    if result and result2:
-                        interpret(s, body)
-
+                        ifbody.append(line)
+                if result1 and result2:
+                    interpret(s, ifbody)
+                i += 1
             elif "==" in line:
                 if "+" in line:
                     expression = line.split("if ")[1].strip()[:-2]
