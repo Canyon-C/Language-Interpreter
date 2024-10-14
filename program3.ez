@@ -1,0 +1,33 @@
+let a = 1
+let b = 10
+let c = 9 * 5 / 5
+let d = a + 4 / 5
+let l = b
+print(d)
+print(l)
+
+if a + 4 / 5 == 1 {
+    print("works")
+}
+
+while a < b {
+    if a == 4 {
+        print("a is currently equal to 4")
+    } 
+    a++
+}
+
+for x in range(0, 5) {
+    for j in range(0, 2) {
+        print("for loop nest!")
+    }
+
+}
+
+let z = p
+
+
+
+
+
+

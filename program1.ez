@@ -50,9 +50,6 @@ while i < 2 {
 }
 
 for x in range(1, 16) {
-    if x % 15 == 0 {
-        print("FizzBuzz")
-    }
 
     print(x)
 }
